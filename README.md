@@ -18,6 +18,17 @@ echo "mongodb-org-mongos hold" | sudo dpkg --set-selections
 echo "mongodb-org-tools hold" | sudo dpkg --set-selections
 ```
 
+Allow MongoDB to be connected by any machine:
+
+```bash
+nano /etc/mongod.conf
+```
+
+```ini
+# Comment out this line below.
+# bind_ip = 127.0.0.1
+```
+
 See [1] for the original posting.
 
 2. Start MongoDB as a service
