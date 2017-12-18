@@ -272,6 +272,32 @@ Now, within our application, connect to Mongodb Router (mongos) and query as usu
 
 See [5] for original posting.
 
+<a name="tip8"></a>
+8. Enable sharding for a collection
+
+Before you can shard a collection, you must enable sharding for the collection’s database. Enabling sharding for a database does not redistribute data but make it possible to shard the collections in that database.
+
+Once you enable sharding for a database, MongoDB assigns a primary shard for that database where MongoDB stores all data in that database.
+
+First, connect to mongos (MongoDB Router). Then execute the commands:
+
+```bash
+sh.enableSharding("mydatabase")
+sh.shardCollection("mydatabase.mycollection", { { "myshardkey" : "hashed" } } )
+```
+
+MongoDB mongos instances route queries and write operations to shards in a sharded cluster. mongos provide the only interface to a sharded cluster from the perspective of applications. Applications *never* connect or communicate directly with the shards.
+
+The mongos tracks what data is on which shard by caching the metadata from the config servers. The mongos uses the metadata to route operations from applications and clients to the mongod instances. A mongos has no persistent state and consumes minimal system resources.
+
+The most common practice is to run mongos instances on the same systems as your application servers, but you can maintain mongos instances on the shards or on other dedicated resources.
+
+The mongos merges the data from each of the targeted shards and returns the result document. 
+
+mongos performs a broadcast operation for queries that do not include the shard key, routing queries to all shards in the cluster.
+
+See [7], [8] for original posting.
+
 # References
 
 [1] https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
@@ -285,3 +311,8 @@ See [5] for original posting.
 [5] http://codingmiles.com/mongodb-sharded-cluster-deployment/
 
 [6] https://docs.mongodb.com/manual/reference/default-mongodb-port/
+
+[7] https://docs.mongodb.com/manual/tutorial/deploy-shard-cluster/
+
+[8] https://docs.mongodb.com/v3.4/core/sharded-cluster-query-router/
+
