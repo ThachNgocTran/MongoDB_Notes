@@ -302,7 +302,7 @@ mongos performs a broadcast operation for queries that do not include the shard 
 See [7], [8] for original posting.
 
 <a name="tip9"></a>
-9. What is chunk?
+## 9. What is chunk?
 
 A chunk is simply a small record that describes a key range, and the shard that key range is associated to.
 
