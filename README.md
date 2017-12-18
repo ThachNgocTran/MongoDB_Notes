@@ -71,9 +71,21 @@ mongoexport --host localhost --db database_name --collection collection_name --t
 
 See [2] for original posting.
 
+4. mongoimport
+
+Import JSON file into a collection (each line is a json object). Note: truncate the current collection if any.
+
+```bash
+mongoimport --db database_name --collection collection_name --drop --file ~/downloads/primer-dataset.json
+```
+
+See [3] for original posting.
+
 # References
 
 [1] https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
 
 [2] https://docs.mongodb.com/manual/reference/program/mongoexport/
+
+[3] https://docs.mongodb.com/manual/reference/program/mongoimport/
 
