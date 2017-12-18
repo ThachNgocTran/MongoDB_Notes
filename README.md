@@ -13,6 +13,7 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [7. Production-leveled setup for MongoDB](#tip7)  
 [8. Enable sharding for a collection](#tip8)  
 [9. What is chunk?](#tip9)  
+[10. Some common commands](#tip10)  
 
 <a name="tip1"></a>
 ## 1. Install MongoDB 3.6 on Ubuntu 16 LTS
@@ -321,6 +322,168 @@ This mechanism does require active management on Mongo’s part as opposed to fi
 But it has the advantage of allowing you to grow the cluster with ease. If you add another shard to the cluster, Mongo can migrate chunks (without splitting) draining some load off existing shards.
 
 See [9] for original posting.
+
+<a name="tip10"></a>
+## 10. Some common commands
+
+* Insert a document
+
+```javascript
+db.restaurants.insert(
+   {
+      "address" : {
+         "street" : "2 Avenue",
+         "zipcode" : "10075",
+         "building" : "1480",
+         "coord" : [ -73.9557413, 40.7720266 ]
+      },
+      "borough" : "Manhattan",
+      "cuisine" : "Italian",
+      "grades" : [
+         {
+            "date" : ISODate("2014-10-01T00:00:00Z"),
+            "grade" : "A",
+            "score" : 11
+         },
+         {
+            "date" : ISODate("2014-01-16T00:00:00Z"),
+            "grade" : "B",
+            "score" : 17
+         }
+      ],
+      "name" : "Vella",
+      "restaurant_id" : "41704620"
+   }
+)
+```
+
+If the document passed to the insert() method does not contain the _id field, the mongo shell automatically adds the field to the document and sets the field’s value to a generated ObjectId.
+
+* Check how many sessions & connections to MongoDB server
+
+```javascript
+db.serverStatus().connections
+db.currentOp(true)
+```
+
+* Query:
+
+Some operators: (default) AND, OR, IN.
+
+```javascript
+db.users.find( { status: "A" } )
+db.users.find( { status: { $in: [ "P", "D" ] } } )
+db.users.find( { status: "A", age: { $lt: 30 } } )
+db.users.find(
+			   {
+				 status: "A",
+				 $or: [ { age: { $lt: 30 } }, { type: 1 } ]
+			   }
+			)
+db.users.find( { favorites: { artist: "Picasso", food: "pizza" } } )
+db.target.find({'some_array.1':  {$exists: true}})	// array contains at least 2 elements.
+```
+
+* Limit in find():
+
+```javascript
+db.some_collection.find().limit(5)
+```
+
+* Update
+
+```javascript
+db.foo.update({'source': {$exists : false}}, {$set: {'source': 'some_source'}})
+db.products.update({_id: ObjectId("584ec8f644a97b08726d4823")}, {$unset: {'heightmax_mm': 1}})
+```
+
+* Enumerate the cursor returned by find()
+
+```javascript
+var myCursor = db.users.find( { type: 2 } );
+
+while (myCursor.hasNext()) {
+   print(tojson(myCursor.next()));
+}
+```
+
+* Show/drop databases
+
+```javascript
+show databases
+use <mydb>
+db.dropDatabase()
+```
+
+* Show/Rename/Copy collections
+
+```javascript
+show collections (while in some database)
+db.oldname.renameCollection("newname")
+db.collection1.copyTo("collection2")
+```
+
+* Dynamic field name:
+
+```javascript
+var name = req.params.name;
+var value = req.params.value;
+var query = {};
+query[name] = value;
+collection.findOne(query, function (err, item) { ... });
+```
+
+* Find an object based on ID:
+
+```javascript
+db.some_collection.find({_id: ObjectId("584ec8f644a97b08726d4823")})
+```
+
+* Compare ObjectID:
+
+```javascript
+if (doc._id.equals(ObjectId("584ec8f644a97b08726d4823"))){...}
+```
+
+* Get the string embeded in ObjectID
+
+```javascript
+db.hm_final.findOne()["_id"].str
+```
+
+* Convert from one type to another type:
+
+```javascript
+db.products.find().forEach(function(data) {
+    db.products.update({
+        "_id": data._id
+    }, {
+        "$set": {
+            "height_mm": parseInt(data.height_mm)
+        }
+    });
+})
+```
+
+* Get MongoDB version:
+
+```javascript
+db.version()
+```
+
+* Find a random document inside a collection
+
+```javascript
+db.products.find({category:"Category Name"}).skip(Math.random()*YOUR_COLLECTION_SIZE)
+```
+
+* Enable/Drop/List indexing
+
+```javascript
+db.products.ensureIndex({"some_field": "hashed"})
+db.products.dropIndexes()
+db.productsDigikey.getIndexes()
+```
 
 # References
 
