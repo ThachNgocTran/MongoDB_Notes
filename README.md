@@ -12,6 +12,7 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [6. Replica Set](#tip6)  
 [7. Production-leveled setup for MongoDB](#tip7)  
 [8. Enable sharding for a collection](#tip8)  
+[9. What is chunk?](#tip9)  
 
 <a name="tip1"></a>
 ## 1. Install MongoDB 3.6 on Ubuntu 16 LTS
@@ -284,6 +285,7 @@ First, connect to mongos (MongoDB Router). Then execute the commands:
 
 ```bash
 sh.enableSharding("mydatabase")
+db.mycollection.ensureIndex({myshardkey: "hashed"})
 sh.shardCollection("mydatabase.mycollection", { { "myshardkey" : "hashed" } } )
 ```
 
@@ -298,6 +300,27 @@ The mongos merges the data from each of the targeted shards and returns the resu
 mongos performs a broadcast operation for queries that do not include the shard key, routing queries to all shards in the cluster.
 
 See [7], [8] for original posting.
+
+<a name="tip9"></a>
+9. What is chunk?
+
+A chunk is simply a small record that describes a key range, and the shard that key range is associated to.
+
+Initially, a chunk is created which encompasses all possible keys. For a sharded collection with a shard key “score” this may look like:
+
+```javascript
+{ "score" : { "$minKey" : 1 } } -->> { "score" : {"$maxKey":1} } on : shard0000
+```
+
+This descriptor states that any document with any score value (from theoretical minimum to maximum) will be located on the shard named “shard0000”.
+
+Once you start populating the collection with documents, Mongo will start splitting chunks and migrating them to other shards in an attempt to keep data evenly spread across the shards. This action takes place when Mongo sees a chunk containing 64MB worth of data. Once a chunk is split, Mongo will move the one of the two chunks to another shard. It will copy all the documents which fall into the chunk’s range over to the new shard, update the config servers to point the chunk to the new shard, and finally clean up the documents from the old shard. All this work is automatic and baked into the sharding mechanism for Mongo.
+
+This mechanism does require active management on Mongo’s part as opposed to fixed hash function over the number of shards.
+
+But it has the advantage of allowing you to grow the cluster with ease. If you add another shard to the cluster, Mongo can migrate chunks (without splitting) draining some load off existing shards.
+
+See [9] for original posting.
 
 # References
 
@@ -317,3 +340,4 @@ See [7], [8] for original posting.
 
 [8] https://docs.mongodb.com/v3.4/core/sharded-cluster-query-router/
 
+[9] http://plusnconsulting.com/post/mongodb-sharding-and-chunks/
