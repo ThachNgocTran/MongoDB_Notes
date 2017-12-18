@@ -18,6 +18,42 @@ echo "mongodb-org-mongos hold" | sudo dpkg --set-selections
 echo "mongodb-org-tools hold" | sudo dpkg --set-selections
 ```
 
+See [1] for the original posting.
+
+2. Start MongoDB as a service
+
+By default, MongoDB is not automatically started when then system boots.
+
+```bash
+sudo nano /etc/systemd/system/mongodb.service
+```
+
+Fill in the content:
+
+```ini
+[Unit]
+Description=High-performance, schema-free document-oriented database
+After=network.target
+
+[Service]
+User=mongodb
+ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then enable automatic starting:
+
+```bash
+sudo systemctl enable mongodb
+```
+
+Better to restart the machine! Lastly, check the status:
+
+```bash
+sudo systemctl status mongodb
+```
 
 # References
 
