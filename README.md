@@ -14,7 +14,7 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [8. Enable sharding for a collection](#tip8)  
 
 <a name="tip1"></a>
-1. Install MongoDB 3.6 on Ubuntu 16 LTS
+## 1. Install MongoDB 3.6 on Ubuntu 16 LTS
 
 The last echo commands are for fixing the version to 3.6 (no automatic update whenever typing "sudo apt-get update").
 
@@ -44,7 +44,7 @@ nano /etc/mongod.conf
 See [1] for the original posting.
 
 <a name="tip2"></a>
-2. Start MongoDB as a service
+## 2. Start MongoDB as a service
 
 By default, MongoDB is not automatically started when then system boots.
 
@@ -80,7 +80,7 @@ sudo systemctl status mongodb
 ```
 
 <a name="tip3"></a>
-3. mongoexport
+## 3. mongoexport
 
 Export a collection to a JSON file (each line is a json object).
 
@@ -97,7 +97,7 @@ mongoexport --host localhost --db database_name --collection collection_name --t
 See [2] for original posting.
 
 <a name="tip4"></a>
-4. mongoimport
+## 4. mongoimport
 
 Import JSON file into a collection (each line is a json object). Note: truncate the current collection if any.
 
@@ -108,7 +108,7 @@ mongoimport --db database_name --collection collection_name --drop --file ~/down
 See [3] for original posting.
 
 <a name="tip5"></a>
-5. Sharding
+## 5. Sharding
 
 MongoDB supports horizontal scaling through sharding. Sharding is a method for distributing data across multiple machines.
 
@@ -143,7 +143,7 @@ Sharding Strategy:
    ![Ranged Sharding](./Images/RangedSharding.png)
 
 <a name="tip6"></a>
-6. Replica Set
+## 6. Replica Set
 
 It is a group of MongoDB servers operating in a primary/secondary failover fashion. At any point there can only be one primary member within the replica set, however, you can have as many secondaries as you want.
 
@@ -156,7 +156,7 @@ Your application will usually only run queries against the primary member in the
 See [4] for original posting.
 
 <a name="tip7"></a>
-7. Production-leveled setup for MongoDB
+## 7. Production-leveled setup for MongoDB
 
 A big picture.
 
@@ -274,7 +274,7 @@ Now, within our application, connect to Mongodb Router (mongos) and query as usu
 See [5] for original posting.
 
 <a name="tip8"></a>
-8. Enable sharding for a collection
+## 8. Enable sharding for a collection
 
 Before you can shard a collection, you must enable sharding for the collection’s database. Enabling sharding for a database does not redistribute data but make it possible to shard the collections in that database.
 
