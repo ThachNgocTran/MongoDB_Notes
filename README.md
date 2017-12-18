@@ -5,6 +5,12 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 #### Table of Contents
 
 [1. Install MongoDB 3.6 on Ubuntu 16 LTS](#tip1)
+[2. Start MongoDB as a service](#tip2)
+[3. mongoexport](#tip3)
+[4. mongoimport](#tip4)
+[5. Sharding](#tip5)
+[6. Replica Set](#tip6)
+[7. Production-leveled setup for MongoDB](#tip7)
 
 <a name="tip1"></a>
 1. Install MongoDB 3.6 on Ubuntu 16 LTS
@@ -36,6 +42,7 @@ nano /etc/mongod.conf
 
 See [1] for the original posting.
 
+<a name="tip2"></a>
 2. Start MongoDB as a service
 
 By default, MongoDB is not automatically started when then system boots.
@@ -71,6 +78,7 @@ Better to restart the machine! Lastly, check the status:
 sudo systemctl status mongodb
 ```
 
+<a name="tip3"></a>
 3. mongoexport
 
 Export a collection to a JSON file (each line is a json object).
@@ -87,6 +95,7 @@ mongoexport --host localhost --db database_name --collection collection_name --t
 
 See [2] for original posting.
 
+<a name="tip4"></a>
 4. mongoimport
 
 Import JSON file into a collection (each line is a json object). Note: truncate the current collection if any.
@@ -97,6 +106,7 @@ mongoimport --db database_name --collection collection_name --drop --file ~/down
 
 See [3] for original posting.
 
+<a name="tip5"></a>
 5. Sharding
 
 MongoDB supports horizontal scaling through sharding. Sharding is a method for distributing data across multiple machines.
@@ -131,6 +141,7 @@ Sharding Strategy:
    
    ![Ranged Sharding](./Images/RangedSharding.png)
 
+<a name="tip6"></a>
 6. Replica Set
 
 It is a group of MongoDB servers operating in a primary/secondary failover fashion. At any point there can only be one primary member within the replica set, however, you can have as many secondaries as you want.
@@ -143,6 +154,7 @@ Your application will usually only run queries against the primary member in the
 
 See [4] for original posting.
 
+<a name="tip7"></a>
 7. Production-leveled setup for MongoDB
 
 A big picture.
