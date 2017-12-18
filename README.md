@@ -1,8 +1,12 @@
-# MongoDB_Notes
+# MongoDB Notes
 
 Notes on my experience with MongoDB. Serve as a reminder just in case I forgot something (especially some syntax).
 
-1. Install MongoDB 3.6 on Ubuntu 16 LTS
+#### Table of Contents
+
+[1. Install MongoDB 3.6 on Ubuntu 16 LTS](#tip1)
+
+1. Install MongoDB 3.6 on Ubuntu 16 LTS<a name="tip1"></a>
 
 The last echo commands are for fixing the version to 3.6 (no automatic update whenever typing "sudo apt-get update").
 
