@@ -10,8 +10,8 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [4. mongoimport](#tip4)  
 [5. Sharding](#tip5)  
 [6. Replica Set](#tip6)  
-[7. Production-leveled setup for MongoDB](#tip7) 
-[8. Enable sharding for a collection](#tip8) 
+[7. Production-leveled setup for MongoDB](#tip7)  
+[8. Enable sharding for a collection](#tip8)  
 
 <a name="tip1"></a>
 1. Install MongoDB 3.6 on Ubuntu 16 LTS
