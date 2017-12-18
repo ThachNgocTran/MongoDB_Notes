@@ -4,13 +4,13 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 
 #### Table of Contents
 
-[1. Install MongoDB 3.6 on Ubuntu 16 LTS](#tip1)
-[2. Start MongoDB as a service](#tip2)
-[3. mongoexport](#tip3)
-[4. mongoimport](#tip4)
-[5. Sharding](#tip5)
-[6. Replica Set](#tip6)
-[7. Production-leveled setup for MongoDB](#tip7)
+[1. Install MongoDB 3.6 on Ubuntu 16 LTS](#tip1)  
+[2. Start MongoDB as a service](#tip2)  
+[3. mongoexport](#tip3)  
+[4. mongoimport](#tip4)  
+[5. Sharding](#tip5)  
+[6. Replica Set](#tip6)  
+[7. Production-leveled setup for MongoDB](#tip7)  
 
 <a name="tip1"></a>
 1. Install MongoDB 3.6 on Ubuntu 16 LTS
