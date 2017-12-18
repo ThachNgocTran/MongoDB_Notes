@@ -92,6 +92,54 @@ mongoimport --db database_name --collection collection_name --drop --file ~/down
 
 See [3] for original posting.
 
+5. Sharding and Replica Set
+
+* Sharding
+
+MongoDB supports horizontal scaling through sharding. Sharding is a method for distributing data across multiple machines.
+
+Each shard contains a subset or a replica of a dataset.
+
+To distribute the documents in a collection, MongoDB partitions the collection using the shard key. The shard key consists of an immutable field or fields that exist in every document in the target collection.
+
+A sharded collection can have only one shard key. You cannot change the shard key after sharding, nor can you unshard a sharded collection.
+
+If queries do not include the shard key or the prefix of a compound shard key, mongos performs a broadcast operation, querying all shards in the sharded cluster.
+
+A database can have a mixture of sharded and unsharded collections.
+
+Unsharded collections are stored on a primary shard. Each database has its own primary shard.
+
+Sharding Strategy:
+
+   - Hashed
+   
+   While a range of shard keys may be “close”, their hashed values are unlikely to be on the same chunk. Data distribution based on hashed values facilitates more even data distribution.
+   
+   However, hashed distribution means that ranged-based queries on the shard key are less likely to target a single shard, resulting in more cluster wide broadcast operations.
+
+   ![Hashed Sharding](./Images/HashSharding.png)
+   
+   - Ranged
+   
+   A range of shard keys whose values are "close" are more likely to reside on the same chunk.
+   
+   Poorly considered shard keys can result in uneven distribution of data, which can negate some benefits of sharding or can cause performance bottlenecks.
+   
+   ![Ranged Sharding](./Images/RangedSharding.png)
+
+* Replica Set
+
+It is a group of MongoDB servers operating in a primary/secondary failover fashion. At any point there can only be one primary member within the replica set, however, you can have as many secondaries as you want.
+
+All secondaries actively replicate data off of the current primary member so that if it fails, one of them will be able to take over quite seamlessly as the new primary.
+
+Your application will usually only run queries against the primary member in the replica set.
+
+![Replica Set](./Images/ReplicaSet.png)
+
+See [4] for original posting.
+
 # References
 
 [1] https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
@@ -99,4 +147,6 @@ See [3] for original posting.
 [2] https://docs.mongodb.com/manual/reference/program/mongoexport/
 
 [3] https://docs.mongodb.com/manual/reference/program/mongoimport/
+
+[4] https://eladnava.com/deploy-a-highly-available-mongodb-replica-set-on-aws/
 
