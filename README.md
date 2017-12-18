@@ -55,7 +55,25 @@ Better to restart the machine! Lastly, check the status:
 sudo systemctl status mongodb
 ```
 
+3. mongoexport
+
+Export a collection to a JSON file (each line is a json object).
+
+```bash
+mongoexport --host localhost --db database_name --collection collection_name --out targetproduction.json
+```
+
+Export a collection to a CSV file (we must indicate which fields in each document to export).
+
+```bash
+mongoexport --host localhost --db database_name --collection collection_name --type=csv /fields:a_specific_field,another_field --out D:\mydata.csv
+```
+
+See [2] for original posting.
+
 # References
 
 [1] https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
+
+[2] https://docs.mongodb.com/manual/reference/program/mongoexport/
 
