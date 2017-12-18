@@ -92,9 +92,7 @@ mongoimport --db database_name --collection collection_name --drop --file ~/down
 
 See [3] for original posting.
 
-5. Sharding and Replica Set
-
-* Sharding
+5. Sharding
 
 MongoDB supports horizontal scaling through sharding. Sharding is a method for distributing data across multiple machines.
 
@@ -128,7 +126,7 @@ Sharding Strategy:
    
    ![Ranged Sharding](./Images/RangedSharding.png)
 
-* Replica Set
+6. Replica Set
 
 It is a group of MongoDB servers operating in a primary/secondary failover fashion. At any point there can only be one primary member within the replica set, however, you can have as many secondaries as you want.
 
@@ -140,7 +138,9 @@ Your application will usually only run queries against the primary member in the
 
 See [4] for original posting.
 
-6. Production-leveled setup for MongoDB
+7. Production-leveled setup for MongoDB
+
+A big picture.
 
 ![Production Setup](./Images/ProductionSetup.png)
 
@@ -158,9 +158,12 @@ replication:
 
 sharding:
   clusterRole: configsvr
+  
+net:
+   bindIp: 0.0.0.0
 ```
 
-Then restart the service:
+Then restart the service:
 
 ```bash
 sudo service mongod restart
@@ -174,9 +177,11 @@ rs.initiate( { _id: "configReplSet", configsvr: true, members: [ { _id: 0, host:
 rs.status()
 ```
 
+See [6] for why port 27019 is used by default.
+
 * Configure Shards
 
-Note: each shard is also a replica set!
+Note: Each shard is also a Replica Set!
 
 ```bash
 nano /etc/mongod.conf
@@ -202,7 +207,7 @@ Connect to one of the MongoDB instances to initialize the replica set and declar
 ```javascript
 rs.initiate(
   {
-    _id : <replicaSetName>,
+    _id : rs0,
     members: [
       { _id : 0, host : "s1-mongo1.example.net:27018" },
       { _id : 1, host : "s1-mongo2.example.net:27018" },
@@ -212,6 +217,8 @@ rs.initiate(
 )
 rs.status()
 ```
+
+See [6] for why port 27018 is used by default.
 
 * Configure MongoDB Router
 
@@ -231,18 +238,20 @@ Then restart the service:
 sudo service mongos restart
 ```
 
-Now enable Sharding. First, connect to the MongoDB Router (mongos):
+Now connecting the dots! First, connect to the MongoDB Router (mongos):
 
-Note: mongod and mongos use the same port by default.
+Note: mongod and mongos use the same port by default. See [6].
+
+And run these commands:
 
 ```javascript
-sh.addShard("rs0/mongosh01db01:27017")
-sh.addShard("rs1/mongosh02db01:27017")
+sh.addShard("rs0/mongosh01db01:27018")
+sh.addShard("rs1/mongosh02db01:27018")
 
 sh.status()
 ```
 
-NOW, WITHIN OUR APPLICATION, CONNECT TO MongoDB Router AND QUERY AS USUAL.
+Now, within our application, connect to Mongodb Router (mongos) and query as usual.
 
 See [5] for original posting.
 
@@ -258,3 +267,4 @@ See [5] for original posting.
 
 [5] http://codingmiles.com/mongodb-sharded-cluster-deployment/
 
+[6] https://docs.mongodb.com/manual/reference/default-mongodb-port/
