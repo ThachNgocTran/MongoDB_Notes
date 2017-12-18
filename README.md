@@ -140,6 +140,112 @@ Your application will usually only run queries against the primary member in the
 
 See [4] for original posting.
 
+6. Production-leveled setup for MongoDB
+
+![Production Setup](./Images/ProductionSetup.png)
+
+* Configure Config Server
+
+Note: They themselves should be in a Replica Set, too!
+
+```bash
+nano /etc/mongod.conf
+```
+
+```ini
+replication:
+  replSetName: configReplSet
+
+sharding:
+  clusterRole: configsvr
+```
+
+Then restart the service:
+
+```bash
+sudo service mongod restart
+```
+
+Then, connect to any of the Config Servers:
+
+```javascript
+rs.initiate( { _id: "configReplSet", configsvr: true, members: [ { _id: 0, host: "mongoconfig01:27019" }, { _id: 1, host: "mongoconfig02:27019" }, { _id: 2, host: "mongoconfig03:27019" } ] } )
+
+rs.status()
+```
+
+* Configure Shards
+
+Note: each shard is also a replica set!
+
+```bash
+nano /etc/mongod.conf
+```
+
+```ini
+sharding:
+   clusterRole: shardsvr
+replication:
+   replSetName: rs0
+net:
+   bindIp: 0.0.0.0
+```
+
+Then restart the service:
+
+```bash
+sudo service mongod restart
+```
+
+Connect to one of the MongoDB instances to initialize the replica set and declare its members.
+
+```javascript
+rs.initiate(
+  {
+    _id : <replicaSetName>,
+    members: [
+      { _id : 0, host : "s1-mongo1.example.net:27018" },
+      { _id : 1, host : "s1-mongo2.example.net:27018" },
+      { _id : 2, host : "s1-mongo3.example.net:27018" }
+    ]
+  }
+)
+rs.status()
+```
+
+* Configure MongoDB Router
+
+```bash
+nano /etc/mongos.conf
+```
+
+```ini
+# Remove storage section from the config file!
+sharding:
+  configDB:configReplSet/mongoconfig01:27019,mongoconfig02:27019,mongoconfig03:27019
+```
+
+Then restart the service:
+
+```bash
+sudo service mongos restart
+```
+
+Now enable Sharding. First, connect to the MongoDB Router (mongos):
+
+Note: mongod and mongos use the same port by default.
+
+```javascript
+sh.addShard("rs0/mongosh01db01:27017")
+sh.addShard("rs1/mongosh02db01:27017")
+
+sh.status()
+```
+
+NOW, WITHIN OUR APPLICATION, CONNECT TO MongoDB Router AND QUERY AS USUAL.
+
+See [5] for original posting.
+
 # References
 
 [1] https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
@@ -149,4 +255,6 @@ See [4] for original posting.
 [3] https://docs.mongodb.com/manual/reference/program/mongoimport/
 
 [4] https://eladnava.com/deploy-a-highly-available-mongodb-replica-set-on-aws/
+
+[5] http://codingmiles.com/mongodb-sharded-cluster-deployment/
 
