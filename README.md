@@ -142,7 +142,7 @@ See [4] for original posting.
 
 A big picture.
 
-![Production Setup](./Images/ProductionSetup.png)
+![Production Setup](./Images/ProductionSetup2.png)
 
 * Configure Config Server
 
