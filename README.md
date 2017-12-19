@@ -14,6 +14,7 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [8. Enable sharding for a collection](#tip8)  
 [9. What is chunk?](#tip9)  
 [10. Some common commands](#tip10)  
+[11. MongoDB and Transaction/ACID support](#tip11)  
 
 <a name="tip1"></a>
 ## 1. Install MongoDB 3.6 on Ubuntu 16 LTS
@@ -525,6 +526,21 @@ if (Object.keys(features).length > 0){
 db.getCollection("some_name")
 ```
 
+<a name="tip11"></a>
+## 11. MongoDB and Transaction/ACID support
+
+In MongoDB, a write operation is atomic on the level of a single document, even if the operation modifies multiple embedded documents within a single document.
+
+When a single write operation modifies multiple documents, the modification of each document is atomic, but the operation as a whole is not atomic and other operations may interleave.
+
+Workaround:
+
+* Embed all needed information in one document within the collection. E.g.: A Product document, beside product info, also contains "Who buys" field.
+
+* two-phase commit: See [11].
+
+See [10] for original posting.
+
 # References
 
 [1] https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
@@ -544,3 +560,7 @@ db.getCollection("some_name")
 [8] https://docs.mongodb.com/v3.4/core/sharded-cluster-query-router/
 
 [9] http://plusnconsulting.com/post/mongodb-sharding-and-chunks/
+
+[10] https://docs.mongodb.com/manual/core/write-operations-atomicity/
+
+[11] https://docs.mongodb.com/manual/tutorial/perform-two-phase-commits/
