@@ -382,6 +382,7 @@ db.users.find(
 			)
 db.users.find( { favorites: { artist: "Picasso", food: "pizza" } } )
 db.target.find({'some_array.1':  {$exists: true}})	// array contains at least 2 elements.
+db.target.find().count()	// Count elements found.
 ```
 
 * Limit in find():
@@ -393,8 +394,9 @@ db.some_collection.find().limit(5)
 * Update
 
 ```javascript
-db.foo.update({'source': {$exists : false}}, {$set: {'source': 'some_source'}})
+db.products.update({'source': {$exists : false}}, {$set: {'source': 'some_source'}})
 db.products.update({_id: ObjectId("584ec8f644a97b08726d4823")}, {$unset: {'heightmax_mm': 1}})
+db.products.update({}, {$rename:{"category1":"name1", "category2": "name2"}}, false, true);
 ```
 
 * Enumerate the cursor returned by find()
@@ -415,12 +417,13 @@ use <mydb>
 db.dropDatabase()
 ```
 
-* Show/Rename/Copy collections
+* Show/Rename/Copy/Drop collections
 
 ```javascript
 show collections (while in some database)
 db.oldname.renameCollection("newname")
 db.collection1.copyTo("collection2")
+db.collection1.drop()
 ```
 
 * Dynamic field name:
@@ -480,9 +483,46 @@ db.products.find({category:"Category Name"}).skip(Math.random()*YOUR_COLLECTION_
 * Enable/Drop/List indexing
 
 ```javascript
-db.products.ensureIndex({"some_field": "hashed"})
+db.products.ensureIndex({some_field: "hashed"})
+db.products.createIndex({some_field: "hashed"})
 db.products.dropIndexes()
 db.productsDigikey.getIndexes()
+```
+
+* Disable timeout for Cursor
+
+```javascript
+db.some_collection.find().noCursorTimeout().forEach(function(doc){...}
+```
+
+* Go through all documents, change some and save/remove the changes
+
+```javascript
+db.targetproduction.find().noCursorTimeout().forEach(function(doc){
+  for(var key in doc){
+    if (key == "invalid_key") {
+	  delete (doc[key]);
+	  db.targetproduction.save(doc)
+	  //db.targetproduction.remove(doc)
+    } else {
+	  doc["duplicated" + key] = doc[key]
+	}
+  }
+})
+```
+
+* Get all field names of an object
+
+```javascript
+if (Object.keys(features).length > 0){
+  print("There is " + Object.keys(features).length + " features")
+}
+```
+
+* Get collection based on name
+
+```javascript
+db.getCollection("some_name")
 ```
 
 # References
