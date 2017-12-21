@@ -15,6 +15,8 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [9. What is chunk?](#tip9)  
 [10. Some common commands](#tip10)  
 [11. MongoDB and Transaction/ACID support](#tip11)  
+[12. Indexing](#tip12)  
+[13. Aggregate (~ "JOIN")](#tip13)  
 
 <a name="tip1"></a>
 ## 1. Install MongoDB 3.6 on Ubuntu 16 LTS
@@ -526,6 +528,12 @@ if (Object.keys(features).length > 0){
 db.getCollection("some_name")
 ```
 
+* Get index size
+
+```javascript
+db.some_collection.stats().indexSizes
+```
+
 <a name="tip11"></a>
 ## 11. MongoDB and Transaction/ACID support
 
@@ -540,6 +548,166 @@ Workaround:
 * two-phase commit: See [11].
 
 See [10] for original posting.
+
+<a name="tip12"></a>
+## 12. Indexing
+
+Without indexes, MongoDB must perform a collection scan, i.e. scan every document in a collection, to select those documents that match the query statement. If an appropriate index exists for a query, MongoDB can use the index to limit the number of documents it must inspect.
+
+Index Types
+
+* Single Field:
+
+```javascript
+db.records.createIndex({ score: 1 })	// ascending
+db.records.createIndex({ score: -1 })	// descending
+```
+
+* Compound Index:
+
+```javascript
+db.products.createIndex( { "item": 1, "stock": 1 } )
+```
+
+Compound means "together": the indexing on item/stock are **tightly related in the order** ("item" first, then "stock"). Thus, when querying, the searched criteria must follow "prefixes", e.g.: provide both "item" and "stock" respectively; or provide only "item". See [15].
+
+Compound index costs more space than the indexes of each individual field. See [16].
+
+* Multikey Index:
+
+MongoDB automatically determines whether to create a multikey index if the indexed field **contains an array value**; you do not need to explicitly specify the multikey type.
+
+MongoDB creates **an index key for each element in the array**.
+
+```javascript
+{
+	book: "Artificial Intelligence",
+	tags: ["ai", "machine learning", "intelligence"]
+}
+```
+
+Limitations: You cannot create a compound multikey index if more than one to-be-indexed field of a document is an array.
+
+* Geospatial Index:
+
+To support efficient queries of geospatial coordinate data.
+
+* Text Indexes:
+
+Purpose: Full-Text Search. Similar to Google Search, Wikipedia Search. **Only useful** in case of using $text query operations.
+
+When we create a text index on a field, MongoDB tokenizes (remove **stop words**), and **stems** the indexed field’s text content, and sets up the indexes accordingly.
+
+Text indexes come with a limitation of only **one text index per collection**.
+
+Example1: on one field.
+
+```javascript
+db.messages.createIndex({"subject":"text"})  
+db.messages.find({$text: {$search: "dogs"}}, {score: {$meta: "textScore"}}).sort({score:{$meta:"textScore"}})
+```
+
+Example2: on multiple fields.
+
+```javascript
+db.messages.createIndex({"subject":"text","content":"text"})
+```
+
+Example3: on all fields.
+
+```javascript
+db.messages.createIndex({"$**":"text"})
+```
+
+Example4: Phrase Search (By default: OR)
+
+```javascript
+db.messages.find({$text: {$search: "\"cook food\""}}, {score: {$meta: "textScore"}}).sort({score:{$meta:"textScore"}})
+```
+
+Example5: Negation Search (use minus sign)
+
+```javascript
+db.messages.find({$text: {$search: "rat -birds"}}, {score: {$meta: "textScore"}}).sort({score:{$meta:"textScore"}})
+```
+
+Explain the query: See how MongoDB interprets the input query.
+
+```javascript
+db.messages.find({$text: {$search: "dogs who cats dont eat ate rats \"dogs eat\" -friends"}}, {score: {$meta: "textScore"}}).sort({score:{$meta:"textScore"}}).explain(true)
+```
+
+The default weight for every indexed field is 1. If using different weights for different fields, configure when creating indexes:
+
+```javascript
+db.messages.createIndex( {"$**": "text"}, {"weights": { subject: 3, content:1 }} )
+```
+
+Partitioning Text Indexes: Using compound index.
+
+```javascript
+db.messages.createIndex( { "year":1, "subject": "text"} )
+db.messages.find({year: 2015, $text: {$search: "cats"}}, {score: {$meta: "textScore"}}).sort({score:{$meta:"textScore"}})
+```
+
+Note: Keeping in mind the fact that MongoDB full-text search is **not** a complete replacement for traditional search engine databases used with MongoDB.
+
+* Hashed Indexes:
+
+Hashed indexes support only equality comparison and do not support range queries. Useful when the data is distributed non-uniformly AND we want to leverage Sharding.
+
+Create a Hashed Index:
+
+```javascript
+db.collection.createIndex( { _id: "hashed" } )
+```
+
+See [12], [13], [14], [15] for original posting.
+
+<a name="tip13"></a>
+## 13. Aggregate (~ "JOIN")
+
+Command Aggregate can be used in a very flexible way, as a series of activities (or "data pipeline").
+
+```javascript
+db.getCollection.('tb1').aggregate([
+  // Filter conditions from the source collection
+  { "$match": { "status": { "$ne": "closed" } }},
+
+  // Do the first join
+  { "$lookup": {
+    "from": "tb2",
+    "localField": "id",
+    "foreignField": "profileId",
+    "as": "tb2"
+  }},
+
+  // $unwind the array to denormalize
+  { "$unwind": "$tb2" },
+
+  // Then match on the condtion for tb2
+  { "$match": { "tb2.profile_type": "agent" } },
+
+  // join the second additional collection
+  { "$lookup": {
+    "from": "tb3",
+    "localField": "tb2.id",
+    "foreignField": "id",
+    "as": "tb3"
+  }},
+
+  // $unwind again to de-normalize
+  { "$unwind": "$tb3" },
+
+  // Now filter the condition on tb3
+  { "$match": { "tb3.status": 0 } },
+
+  // Project only wanted fields. In this case, exclude "tb2"
+  { "$project": { "tb2": 0 } }
+])
+```
+
+See [17] for original posting.
 
 # References
 
@@ -564,3 +732,15 @@ See [10] for original posting.
 [10] https://docs.mongodb.com/manual/core/write-operations-atomicity/
 
 [11] https://docs.mongodb.com/manual/tutorial/perform-two-phase-commits/
+
+[12] https://docs.mongodb.com/manual/indexes/
+
+[13] https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
+
+[14] https://docs.mongodb.com/manual/core/index-multikey/
+
+[15] https://docs.mongodb.com/manual/core/index-compound/#prefixes
+
+[16] https://dev.to/weiiishannn/compound-index-vs-multiple-single-field-index-in-mongodb-3x
+
+[17] https://stackoverflow.com/questions/44948677/how-to-join-to-two-additional-collections-with-conditions
