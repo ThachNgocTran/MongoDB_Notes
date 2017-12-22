@@ -547,13 +547,27 @@ Run this once before running your own script. Then run it again after your own s
 
 In MongoDB, a write operation is atomic on the level of a single document, even if the operation modifies multiple embedded documents within a single document.
 
-When a single write operation modifies multiple documents, the modification of each document is atomic, but the operation as a whole is not atomic and other operations may interleave.
+When a single write operation modifies multiple documents, **the modification of each document is atomic**, but the operation as a whole is not atomic and other operations may interleave.
 
 Workaround:
 
-* Embed all needed information in one document within the collection. E.g.: A Product document, beside product info, also contains "Who buys" field.
+* Embed all needed information in one document within the collection. That is, For fields that must be updated together, embedding the fields within the same document ensures that the fields can be updated atomically. E.g.: A Product document, beside product info, also contains "Who buys" field.
+
+  And then use MongoDB's functions such as `findAndModify()`, `update()`, etc. to ensure data modification to be done atomically.
+  
+  Note: the difference between `findAndModify()` and `update()` is the former supports "set-then-get" in one step (no interference by outside). `update()` can modify more than one document with *multi* option.
 
 * two-phase commit: See [11].
+
+MULTIDOCUMENT UPDATES:
+
+```javascript
+db.products.update({}, {$addToSet: {tags: 'cheap'}}, {multi: true})
+```
+
+Updates are atomic at a document level, which means that a statement that has to update 10 documents might fail for some reason after updating the first 3 of them. The application has to deal with such failures according to its policy. Thus, **no transaction here!**.
+
+Take-away: **Complex** transaction-styled operations are likely not possible in MongoDB.
 
 See [10] for original posting.
 
