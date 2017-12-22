@@ -534,6 +534,14 @@ db.getCollection("some_name")
 db.some_collection.stats().indexSizes
 ```
 
+* Check if index has been used
+
+```javascript
+db.some_collection.aggregate([ { $indexStats: { } } ])
+```
+
+Run this once before running your own script. Then run it again after your own script.
+
 <a name="tip11"></a>
 ## 11. MongoDB and Transaction/ACID support
 
@@ -706,6 +714,8 @@ db.getCollection.('tb1').aggregate([
   { "$project": { "tb2": 0 } }
 ])
 ```
+
+It seems that $lookup ~ LEFT OUTER JOIN in SQL.
 
 See [17] for original posting.
 
