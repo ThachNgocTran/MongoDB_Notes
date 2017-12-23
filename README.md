@@ -10,7 +10,7 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [4. mongoimport](#tip4)  
 [5. Sharding](#tip5)  
 [6. Replica Set](#tip6)  
-[7. Production-leveled setup for MongoDB](#tip7)  
+[7. Basic Production-leveled setup for MongoDB](#tip7)  
 [8. Enable sharding for a collection](#tip8)  
 [9. What is chunk?](#tip9)  
 [10. Some common commands](#tip10)  
@@ -150,18 +150,24 @@ Sharding Strategy:
 <a name="tip6"></a>
 ## 6. Replica Set
 
+The point of using Replica Set is mainly to have High Availability.
+
 It is a group of MongoDB servers operating in a primary/secondary failover fashion. At any point there can only be one primary member within the replica set, however, you can have as many secondaries as you want.
 
 All secondaries actively replicate data off of the current primary member so that if it fails, one of them will be able to take over quite seamlessly as the new primary.
 
-Your application will usually only run queries against the primary member in the replica set.
+Your application will **usually** only run queries **against the primary member** in the replica set. Applications **sometimes** query secondary nodes for **read scaling**. Tell the client to opt for "read preference". See [18].
+
+A three-member replica set can have either three members that hold data or two members that hold data and **an arbiter**. The primary is the only member in the set that can accept write operations.
+
+It's possible that a document that has just been written won't be found on a read immediately following the write, unless you’re reading the primary. Thus, depending on the consistency requirement, we may prefer one over the other. Note: MongoDB follows "eventual consistency model".
 
 ![Replica Set](./Images/ReplicaSet.png)
 
 See [4] for original posting.
 
 <a name="tip7"></a>
-## 7. Production-leveled setup for MongoDB
+## 7. Basic Production-leveled setup for MongoDB
 
 A big picture.
 
@@ -204,7 +210,7 @@ See [6] for why port 27019 is used by default.
 
 * Configure Shards
 
-Note: Each shard is also a Replica Set!
+Note: Each shard is **also a Replica Set**!
 
 ```bash
 nano /etc/mongod.conf
@@ -240,6 +246,8 @@ rs.initiate(
 )
 rs.status()
 ```
+
+Above, one member can be optionally an arbiter by inputting `arbiterOnly: true`.
 
 See [6] for why port 27018 is used by default.
 
@@ -768,3 +776,5 @@ See [17] for original posting.
 [16] https://dev.to/weiiishannn/compound-index-vs-multiple-single-field-index-in-mongodb-3x
 
 [17] https://stackoverflow.com/questions/44948677/how-to-join-to-two-additional-collections-with-conditions
+
+[18] https://severalnines.com/blog/become-mongodb-dba-how-scale-reads
