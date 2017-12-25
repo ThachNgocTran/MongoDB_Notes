@@ -17,6 +17,8 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [11. MongoDB and Transaction/ACID support](#tip11)  
 [12. Indexing](#tip12)  
 [13. Aggregate (~ "JOIN")](#tip13)  
+[14. B-tree](#tip14)  
+[15. Trouble-shooting] (#tip15)  
 
 <a name="tip1"></a>
 ## 1. Install MongoDB 3.6 on Ubuntu 16 LTS
@@ -584,6 +586,24 @@ See [10] for original posting.
 
 Without indexes, MongoDB must perform a collection scan, i.e. scan every document in a collection, to select those documents that match the query statement. If an appropriate index exists for a query, MongoDB can use the index to limit the number of documents it must inspect.
 
+**Index intersection** was first supported by version 2.6 of MongoDB. Keep in mind that the database will use a single index per query **if possible**. Thus, if queries **usually** involve at least two fields, create Compound Index (rather than two separate Single Field indexes).
+
+Although indexes are essential for good query performance, each new index imposes a **small maintenance cost**. Whenever you add a document to a collection, each index on that collection must be modified to include the new document.
+
+Bear in mind that indexes are stored separately in RAM from the data they index and aren't clustered.
+
+By default, MongoDB builds indexes in the foreground, which prevents all read and write operations to the database while the index builds. Background index builds take longer to complete and result in an index that is initially larger, or less compact, than an index built in the foreground. Over time, the compactness of indexes built in the background will approach foreground-built indexes.
+
+```javascript
+db.collection.createIndex( { a: 1 }, { background: true } )
+```
+
+If your application heavily updates existing data or performs a lot of large deletions, you may end up with a **highly fragmented** index. The primary symptom of a fragmented index is an index size much larger than you'd expect for the given data size. ==> Use more RAM than necessary. You may want to consider rebuilding one or more indexes.
+
+```javascript
+db.values.reIndex()
+```
+
 Index Types
 
 * Single Field:
@@ -591,6 +611,18 @@ Index Types
 ```javascript
 db.records.createIndex({ score: 1 })	// ascending
 db.records.createIndex({ score: -1 })	// descending
+```
+
+Unique index can be created with option "unique":
+
+```javascript
+db.users.createIndex({username: 1}, {unique: true})
+```
+
+Sometime, there are documents without the field needed to be indexed, we can ignore updating the index whenever involving such documents by using "sparse index":
+
+```javascript
+db.reviews.createIndex({user_id: 1}, {sparse: true, unique: false})
 ```
 
 * Compound Index:
@@ -602,6 +634,8 @@ db.products.createIndex( { "item": 1, "stock": 1 } )
 Compound means "together": the indexing on item/stock are **tightly related in the order** ("item" first, then "stock"). Thus, when querying, the searched criteria must follow "prefixes", e.g.: provide both "item" and "stock" respectively; or provide only "item". See [15].
 
 Compound index costs more space than the indexes of each individual field. See [16].
+
+Trick: The order of fields in Compound Index **really matters**! Try to put fields where concrete values are often seeked first, and then fields where ranged values are often queries (e.g. "less than").
 
 * Multikey Index:
 
@@ -692,7 +726,7 @@ Create a Hashed Index:
 db.collection.createIndex( { _id: "hashed" } )
 ```
 
-See [12], [13], [14], [15] for original posting.
+See [12], [13], [14], [15], [20] for original posting.
 
 <a name="tip13"></a>
 ## 13. Aggregate (~ "JOIN")
@@ -741,6 +775,79 @@ It seems that $lookup ~ LEFT OUTER JOIN in SQL.
 
 See [17] for original posting.
 
+<a name="tip14"></a>
+14. B-tree
+
+MongoDB represents most indexes internally as B-trees.
+
+Why use B-tree? First, they facilitate a variety of queries, including exact matches, range conditions, sorting, prefix matching, and index-only queries. Second, they’re able to remain balanced in spite of the addition and removal of keys.
+
+An example:
+
+![B-Tree Indexing](./Images/Btree_index.png)
+
+See [19] for original posting.
+
+<a name="tip15"></a>
+15. Trouble-shooting
+
+* Check if query time is considered as "slow" (**> 100ms**)
+
+View the MongoDB log file:
+
+```bash
+cat /etc/mongod.conf
+# Look for mongod.log
+cat /var/log/mongodb/mongod.log
+```
+
+```bash
+2017-12-25T14:12:28.298+0100 I COMMAND  [conn4] command stocks.values appName: "MongoDB Shell" command: find { find: "values", filter: { stock_symbol: "GOOG" }, limit: 1.0, singleBatch: false, sort: { date: -1.0 }, $db: "stocks" } planSummary: COLLSCAN keysExamined:0 docsExamined:4308303 hasSortStage:1 cursorExhausted:1 numYields:33726 nreturned:1 reslen:263 locks:{ Global: { acquireCount: { r: 67454 } }, Database: { acquireCount: { r: 33727 } }, Collection: { acquireCount: { r: 33727 } } } protocol:op_msg 8775ms
+```
+
+* Use built-in PROFILER
+
+```javascript
+use stocks
+db.setProfilingLevel(2) // most verbal
+db.setProfilingLevel(1) // log only slow (100 ms) operations
+db.setProfilingLevel(0) // disable
+```
+
+Some commands:
+
+```javascript
+db.system.profile.find({millis: {$gt: 150}})
+db.system.profile.find().sort({$natural: -1}).limit(5).pretty()
+```
+
+* Use explain():
+
+```javascript
+db.values.find({}).sort({close: -1}).limit(1).explain()
+{
+    "cursor" : "BasicCursor",
+    "isMultiKey" : false,
+    "n" : 1,
+    "nscannedObjects" : 4308303,
+    "nscanned" : 4308303,
+    "nscannedObjectsAllPlans" : 4308303,
+    "nscannedAllPlans" : 4308303,
+    "scanAndOrder" : true,
+    "indexOnly" : false,
+    "nYields" : 4,
+    "nChunkSkips" : 0,
+    "millis" : 10927,
+    "indexBounds" : { },
+    "server" : "localhost:27017"
+}
+```
+
+n: number of documents returned.
+nscanned: number of documents scanned. (The closer to n, the better)
+cursor: BasicCursor, BTreeCursor (when index used!).
+scanAndOrder: if true, MongoDB sorts the result set manually (without using index).
+
 # References
 
 [1] https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
@@ -778,3 +885,7 @@ See [17] for original posting.
 [17] https://stackoverflow.com/questions/44948677/how-to-join-to-two-additional-collections-with-conditions
 
 [18] https://severalnines.com/blog/become-mongodb-dba-how-scale-reads
+
+[19] https://en.wikipedia.org/wiki/B-tree
+
+[20] https://docs.mongodb.com/v3.0/tutorial/build-indexes-in-the-background/
