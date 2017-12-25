@@ -776,7 +776,7 @@ It seems that $lookup ~ LEFT OUTER JOIN in SQL.
 See [17] for original posting.
 
 <a name="tip14"></a>
-14. B-tree
+## 14. B-tree
 
 MongoDB represents most indexes internally as B-trees.
 
@@ -789,7 +789,7 @@ An example:
 See [19] for original posting.
 
 <a name="tip15"></a>
-15. Trouble-shooting
+## 15. Trouble-shooting
 
 * Check if query time is considered as "slow" (**> 100ms**)
 
