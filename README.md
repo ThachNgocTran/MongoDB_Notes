@@ -18,7 +18,7 @@ Notes on my experience with MongoDB. Serve as a reminder just in case I forgot s
 [12. Indexing](#tip12)  
 [13. Aggregate (~ "JOIN")](#tip13)  
 [14. B-tree](#tip14)  
-[15. Trouble-shooting] (#tip15)  
+[15. Trouble-shooting](#tip15)  
 
 <a name="tip1"></a>
 ## 1. Install MongoDB 3.6 on Ubuntu 16 LTS
