@@ -843,10 +843,12 @@ db.values.find({}).sort({close: -1}).limit(1).explain()
 }
 ```
 
-n: number of documents returned.
-nscanned: number of documents scanned. (The closer to n, the better)
-cursor: BasicCursor, BTreeCursor (when index used!).
-scanAndOrder: if true, MongoDB sorts the result set manually (without using index).
+n: number of documents returned.  
+nscanned: number of documents scanned. (The closer to n, the better)  
+cursor: BasicCursor, BTreeCursor (when index used!).  
+scanAndOrder: if true, MongoDB sorts the result set manually (without using index).  
+
+See [21] for origin posting.
 
 # References
 
@@ -889,3 +891,5 @@ scanAndOrder: if true, MongoDB sorts the result set manually (without using inde
 [19] https://en.wikipedia.org/wiki/B-tree
 
 [20] https://docs.mongodb.com/v3.0/tutorial/build-indexes-in-the-background/
+
+[21] https://www.amazon.com/MongoDB-Action-Covers-version-3-0/dp/1617291609
