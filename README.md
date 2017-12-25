@@ -784,7 +784,7 @@ Why use B-tree? First, they facilitate a variety of queries, including exact mat
 
 An example:
 
-![B-Tree Indexing](./Images/Btree_index.png)
+![B-Tree Indexing](./Images/Btree_index2.png)
 
 See [19] for original posting.
 
