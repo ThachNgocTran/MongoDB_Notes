@@ -786,6 +786,8 @@ An example:
 
 ![B-Tree Indexing](./Images/Btree_index2.png)
 
+B-Tree is preferred over Binary Search Tree because many keys can be stored in a node, resulting it being cached effectively in CPU, and also more convenient to read data from HDD (cluster, sector).
+
 See [19] for original posting.
 
 <a name="tip15"></a>
