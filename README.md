@@ -53,6 +53,8 @@ See [1] for the original posting.
 <a name="tip2"></a>
 ## 2. Start MongoDB as a service
 
+**On Linux**:
+
 By default, MongoDB is not automatically started when then system boots.
 
 ```bash
@@ -85,6 +87,33 @@ Better to restart the machine! Lastly, check the status:
 ```bash
 sudo systemctl status mongodb
 ```
+
+**On Windows**:
+
+Create `C:\Program Files\MongoDB\Server\3.6\mongod.cfg` with content:
+
+```bash
+systemLog:
+    destination: file
+    path: c:\data\log\mongod.log
+storage:
+    dbPath: c:\data\db
+```
+
+Create these folders:
+
+```bash
+c:\data\db
+c:\data\log
+```
+
+In Command Prompt with Admin right:
+
+```bash
+"C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe" --config "C:\Program Files\MongoDB\Server\3.6\mongod.cfg" --install
+```
+
+The service is created with Automatic Starting, but for the moment, it is not yet started. Either reboot the machine or start manually in Services.
 
 <a name="tip3"></a>
 ## 3. mongoexport
