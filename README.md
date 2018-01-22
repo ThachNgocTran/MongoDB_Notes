@@ -602,7 +602,16 @@ db.users.findAndModify({
 ```
   
   Note: the difference between `findAndModify()` and `update()` is the former supports "set-then-get" in one step (no interference by outside). `update()` can modify more than one document with *multi* option.
+  
+  In Java driver, `findAndModify()` is not available; use `findOneAndUpdate()` instead. See [23].
 
+```javascript
+db.scores.findOneAndUpdate(
+   { "name" : "R. Stiles" },
+   { $inc: { "points" : 5 } }
+)
+```
+  
 * two-phase commit: See [11].
 
 MULTIDOCUMENT UPDATES:
@@ -968,3 +977,5 @@ See [21] for origin posting.
 [21] https://www.amazon.com/MongoDB-Action-Covers-version-3-0/dp/1617291609
 
 [22] https://docs.mongodb.com/manual/geospatial-queries/#id1
+
+[23] https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndUpdate/
