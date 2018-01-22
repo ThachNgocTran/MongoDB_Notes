@@ -579,7 +579,21 @@ db.some_collection.stats().indexSizes
 db.some_collection.aggregate([ { $indexStats: { } } ])
 ```
 
-Run this once before running your own script. Then run it again after your own script.
+Run this once before running your own script. Then run it again after your own script to see the difference in statistics.
+
+* Remove an element off an array
+
+```javascript
+// Field "users" is indexed with "Multikey".
+db.some_collection.updateMany({users: "userid1"}, {$pull: {users: "userid1"}})
+```
+
+* Find/Delete documents contain an array having at least a certain number of elements
+
+```javascript
+db.some_collection.deleteMany({$where: "this.users.length < 5"})    // more flexible!
+db.some_collection.deleteMany({"users.4": {$exists: false}})        // more efficient!
+```
 
 <a name="tip11"></a>
 ## 11. MongoDB and Transaction/ACID support
