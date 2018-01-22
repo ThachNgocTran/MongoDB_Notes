@@ -592,7 +592,14 @@ Workaround:
 
 * Embed all needed information in one document within the collection. That is, For fields that must be updated together, embedding the fields within the same document ensures that the fields can be updated atomically. E.g.: A Product document, beside product info, also contains "Who buys" field.
 
-  And then use MongoDB's functions such as `findAndModify()`, `update()`, etc. to ensure data modification to be done atomically.
+  And then use MongoDB's functions such as `findAndModify()`, `update()`, etc. to ensure data modification to be done **atomically**.
+
+```javascript
+db.users.findAndModify({
+    query: {userid: "userid3"},
+    update: {$set: {state: "STATIC"}}
+})
+```
   
   Note: the difference between `findAndModify()` and `update()` is the former supports "set-then-get" in one step (no interference by outside). `update()` can modify more than one document with *multi* option.
 
