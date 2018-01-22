@@ -633,6 +633,8 @@ If your application heavily updates existing data or performs a lot of large del
 db.values.reIndex()
 ```
 
+If an index is created for a collection, even after the last document within the collection is deleted (by default, the collection is non-existent now: "show collections" won't show it up), the Index for that collection is **still somewhere**. The next time when a new element is added to that (empty) collection, **the** Index gets updated respectively. However, in case that the collection is dropped explicitly (`db.my_collection.drop()`), its Index is gone with the collection, too.
+
 Index Types
 
 * Single Field:
@@ -683,7 +685,40 @@ Limitations: You cannot create a compound multikey index if more than one to-be-
 
 * Geospatial Index:
 
-To support efficient queries of geospatial coordinate data.
+To support efficient queries of geospatial coordinate data. This index is particularly helpful in case we want to make geo-related queries, such as, "which documents have their `loc` field, indexed with Geospatial Index, fall into this circular region, denoted by a center and a radius?". See [22].
+
+It's better to use Geosphere of "2dsphere" rather than "2d" because of high accuracy. Note: MongoDB requires **longitude first and then latitude** (convention: lat first, then long). Distance unit is metre.
+
+```javascript
+db.users.insert({
+   userid: "userid5",
+   name: "Shelley Wilkerson",
+   loc: {type: "Point", coordinates: [13.404236, 52.519664]},
+   state: "MOVING",
+   loc_timestamp: "2018.01.20 10:45:39.123"
+})
+
+db.users.createIndex({loc : "2dsphere" })
+```
+
+And then carry out the query:
+
+```javascript
+db.users.find({  
+  "loc":{  
+    "$nearSphere":{  
+      "$geometry":{  
+        "type":"Point",
+        "coordinates":[13.410121, 52.522604]
+      },
+      "$minDistance":0,
+      "$maxDistance":50
+    }
+  }
+});
+```
+
+We can't have Sharding Key on fields used for Geospatial data. But a sharded collection can still contain Geospatial fields.
 
 * Text Indexes:
 
@@ -924,3 +959,5 @@ See [21] for origin posting.
 [20] https://docs.mongodb.com/v3.0/tutorial/build-indexes-in-the-background/
 
 [21] https://www.amazon.com/MongoDB-Action-Covers-version-3-0/dp/1617291609
+
+[22] https://docs.mongodb.com/manual/geospatial-queries/#id1
