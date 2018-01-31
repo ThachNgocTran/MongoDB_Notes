@@ -141,6 +141,10 @@ Import JSON file into a collection (each line is a json object). Note: truncate 
 mongoimport --db database_name --collection collection_name --drop --file ~/downloads/primer-dataset.json
 ```
 
+```bash
+mongoimport --db mydb --collection celltowers --type csv --headerline --file "out.csv"
+```
+
 See [3] for original posting.
 
 <a name="tip5"></a>
